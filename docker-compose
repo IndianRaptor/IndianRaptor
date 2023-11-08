@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+
+  # WordPress service
+  wordpress:
+    image: wordpress:latest
+    restart: always
+    volumes:
+      - ./wp-content:/var/www/html
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: password
+      WORDPRESS_DB_NAME: wordpress
+    depends_on:
+      - db
+
+  # PHP-FPM service
+  php:
+    image: php:8.1-fpm-alpine
+    restart: always
+    volumes:
+      - ./wp-content:/var/www/html
+    depends_on:
+      - wordpress
+
+  # MySQL database service
+  db:
+    image: mysql:8.0
+    restart: always
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: wordpress
+
+  # Nginx web server service
+  nginx:
+    image: nginx:latest
+    restart: always
+    volumes:
+      - ./html:/usr/share/nginx/html
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "80:80"
+    depends_on:
+      - php
+
+volumes:
+  wp-content:
+  mysql-data:
+  html:
